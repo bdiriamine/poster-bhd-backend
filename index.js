@@ -22,8 +22,12 @@ dbConnection();
 const app = express();
 
 // Enable other domains to access your application
-app.use(cors());
-app.options('*', cors());
+app.use(cors({
+  origin: 'https://poster-bhd-backend-production.up.railway.app/', // Remplacez par votre domaine
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // compress all responses
 app.use(compression());
