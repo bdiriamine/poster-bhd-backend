@@ -21,14 +21,22 @@ dbConnection();
 // express app
 const app = express();
 
-// Enable other domains to access your application
-app.use(cors({
-  origin: 'https://poster-bhd-backend-production.up.railway.app/', // Remplacez par votre domaine
+const corsOptions = {
+  origin: 'https://poster-bhd-front-production.up.railway.app', // Frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+  allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Referer',  // Autoriser l'en-tête Referer si nécessaire
+      'sec-ch-ua',
+      'sec-ch-ua-mobile',
+      'sec-ch-ua-platform',
+      'User-Agent'
+  ],
+  credentials: true // Si vous utilisez des cookies ou des sessions
+};
 
+app.use(cors(corsOptions));
 // compress all responses
 app.use(compression());
 
