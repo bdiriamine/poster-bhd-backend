@@ -42,6 +42,7 @@ exports.resizeProductImages = asyncHandler(async (req, res, next) => {
         .toFile(`uploads/products/${imageCoverFileName}`); // Make sure this path exists
 
       req.body.imageCover = imageCoverFileName;
+
     }
 
     // Process other images
