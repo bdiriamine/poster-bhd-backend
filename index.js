@@ -37,7 +37,7 @@ const corsOptions = {
   ],
   credentials: true // Si vous utilisez des cookies ou des sessions
 };
-
+app.set('trust proxy', true);
 app.use(cors(corsOptions));
 // compress all responses
 app.use(compression());
@@ -59,12 +59,20 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+const rateLimit = require('express-rate-limit');
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message:
-    'Too many accounts created from this IP, please try again after an hour',
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    keyGenerator: (req) => {
+        return req.ip; // Use IP address as the key
+    },
+    handler: (req, res) => {
+        res.status(429).send('Too many requests, please try again later.');
+    },
 });
+
+app.use(limiter);
 
 // Apply the rate limiting middleware to all requests
 app.use('/api', limiter);
