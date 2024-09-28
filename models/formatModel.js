@@ -4,7 +4,6 @@ const Taille = require('./tailleModel'); // Ensure this import points to your Ta
 const formatSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['portrait', 'paysage', 'carré', 'panorama'], // Allowed format types
     required: [true, 'Type is required'],
   },
   tailles: [{

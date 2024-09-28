@@ -1,5 +1,6 @@
 const { check, body } = require('express-validator');
 const validatorMiddleware = require('../../middlewares/validatorMiddleware');
+const Format = require('../../models/formatModel');
 
 exports.getFormatValidator = [
   check('id').isMongoId().withMessage('Invalid Format id format'),
@@ -8,10 +9,14 @@ exports.getFormatValidator = [
 
 exports.createFormatValidator = [
   check('type')
-      .isIn(['portrait', 'paysage', 'carré', 'panorama'])
-      .withMessage('Type must be one of the following: portrait, paysage, carré, panorama.')
-      .notEmpty().withMessage('Type is required.'),
-
+    .notEmpty().withMessage('Type is required.')
+    .custom(async (value) => {
+      const existingFormat = await Format.findOne({ type: value });
+      if (existingFormat) {
+        throw new Error('Type must be unique.');
+      }
+      return true; // Indicates the validation passed
+    }),
 
   validatorMiddleware,
 ];
@@ -20,9 +25,7 @@ exports.updateFormatValidator = [
     check('id')
       .isMongoId().withMessage('Invalid Format ID format.'),
     body('type')
-      .optional()
-      .isIn(['portrait', 'paysage', 'carré', 'panorama'])
-      .withMessage('Type must be one of the following: portrait, paysage, carré, panorama.'),
+      .optional(),
 
 
     validatorMiddleware,

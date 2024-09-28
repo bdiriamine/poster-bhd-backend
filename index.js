@@ -20,9 +20,11 @@ dbConnection();
 
 // express app
 const app = express();
-
+// app.use(cors());
+// app.options('*', cors());
+//mode prod
 const corsOptions = {
-  origin: 'https://poster-bhd-front-production.up.railway.app', // Frontend
+  origin: process.env.BASE_URL , // Frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: [
       'Content-Type',
