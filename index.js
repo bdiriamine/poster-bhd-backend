@@ -14,62 +14,51 @@ const dbConnection = require('./config/database');
 // Routes
 const mountRoutes = require('./routes');
 
-
 // Connect with db
 dbConnection();
 
 // express app
 const app = express();
-// app.use(cors());
-// app.options('*', cors());
-//mode prod
+
+// Trust proxy to handle the X-Forwarded-For header
+app.set('trust proxy', true);
+
+// CORS configuration
 const corsOptions = {
-  origin: 'https://poster-bhd-front-production.up.railway.app/' , // Frontend
+  origin: 'https://poster-bhd-front-production.up.railway.app/', // Frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: [
       'Content-Type',
       'Authorization',
-      'Referer',  // Autoriser l'en-tête Referer si nécessaire
+      'Referer',  // Authorize the Referer header if necessary
       'sec-ch-ua',
       'sec-ch-ua-mobile',
       'sec-ch-ua-platform',
       'User-Agent'
   ],
-  credentials: true // Si vous utilisez des cookies ou des sessions
+  credentials: true // If you are using cookies or sessions
 };
-app.set('trust proxy', true);
-app.use(cors(corsOptions));
-// compress all responses
-app.use(compression());
 
-// Checkout webhook
-// app.post(
-//   '/webhook-checkout',
-//   express.raw({ type: 'application/json' }),
-//   webhookCheckout
-// );
+app.use(cors(corsOptions));
+
+// Compress all responses
+app.use(compression());
 
 // Middlewares
 app.use(express.json({ limit: '20kb' }));
 app.use(express.static(path.join(__dirname, 'uploads')));
 
+// Logging in development mode
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
-  console.log(`mode: ${process.env.NODE_ENV}`);
+  console.log(`Mode: ${process.env.NODE_ENV}`);
 }
 
-// Limit each IP to 100 requests per `window` (here, per 15 minutes)
-const rateLimit = require('express-rate-limit');
-
+// Rate limiting middleware
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    keyGenerator: (req) => {
-        return req.ip; // Use IP address as the key
-    },
-    handler: (req, res) => {
-        res.status(429).send('Too many requests, please try again later.');
-    },
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: 'Too many requests from this IP, please try again later',
 });
 
 // Apply the rate limiting middleware to all requests
@@ -91,6 +80,7 @@ app.use(
 // Mount Routes
 mountRoutes(app);
 
+// Catch all route handler
 app.all('*', (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
 });
@@ -100,7 +90,7 @@ app.use(globalError);
 
 const PORT = process.env.PORT || 8000;
 const server = app.listen(PORT, () => {
-  console.log(`App running running on port ${PORT}`);
+  console.log(`App running on port ${PORT}`);
 });
 
 // Handle rejection outside express
