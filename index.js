@@ -72,8 +72,6 @@ const limiter = rateLimit({
     },
 });
 
-app.use(limiter);
-
 // Apply the rate limiting middleware to all requests
 app.use('/api', limiter);
 
