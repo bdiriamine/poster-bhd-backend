@@ -25,18 +25,18 @@ app.set('trust proxy', true);
 
 // CORS configuration
 const corsOptions = {
-  origin: 'https://poster-bhd-front-production.up.railway.app/', // Frontend
+  origin: 'https://poster-bhd-front-production.up.railway.app', // No trailing slash
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Referer',  // Authorize the Referer header if necessary
-      'sec-ch-ua',
-      'sec-ch-ua-mobile',
-      'sec-ch-ua-platform',
-      'User-Agent'
+    'Content-Type',
+    'Authorization',
+    'Referer',
+    'sec-ch-ua',
+    'sec-ch-ua-mobile',
+    'sec-ch-ua-platform',
+    'User-Agent'
   ],
-  credentials: true // If you are using cookies or sessions
+  credentials: true
 };
 
 app.use(cors(corsOptions));
