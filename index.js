@@ -24,7 +24,7 @@ const app = express();
 // app.options('*', cors());
 //mode prod
 const corsOptions = {
-  origin: 'https://poster-bhd-backend-production.up.railway.app' , // Frontend
+  origin: 'https://poster-bhd-front-production.up.railway.app/' , // Frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: [
       'Content-Type',
