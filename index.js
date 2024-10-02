@@ -24,6 +24,7 @@ const app = express();
 app.set('trust proxy', true);
 
 // CORS configuration
+//production
 const corsOptions = {
   origin: 'https://poster-bhd-front-production.up.railway.app', // No trailing slash
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -38,7 +39,21 @@ const corsOptions = {
   ],
   credentials: true
 };
-
+// mode dev
+// const corsOptions = {
+//   origin: 'http://localhost:4000', // No trailing slash
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   allowedHeaders: [
+//     'Content-Type',
+//     'Authorization',
+//     'Referer',
+//     'sec-ch-ua',
+//     'sec-ch-ua-mobile',
+//     'sec-ch-ua-platform',
+//     'User-Agent'
+//   ],
+//   credentials: true
+// };
 app.use(cors(corsOptions));
 
 // Compress all responses
@@ -57,7 +72,7 @@ if (process.env.NODE_ENV === 'development') {
 // Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  max: 200, // Increase to allow more requests
   message: 'Too many requests from this IP, please try again later',
 });
 

@@ -7,7 +7,17 @@ const sousCategorieSchema = new mongoose.Schema({
 },
 { timestamps: true });
 
-
+// Mongoose query middleware
+sousCategorieSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'produits',
+  })
+  .populate({
+      path: 'category',
+    }) ;
+    
+  next();
+});
 const SousCategorie = mongoose.model('SousCategorie', sousCategorieSchema);
 
 module.exports = SousCategorie;

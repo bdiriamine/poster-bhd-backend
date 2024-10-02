@@ -7,7 +7,7 @@ const formatRoute = require('./formatRoute');
 // const paymentRoute = require('./paymentRoute');
 // const deliveryRoute = require('./deliveryRoute');
 // const commandRoute = require('./commandRoute');
-// const promotionRoute = require('./promotionRoute');
+const promotionRoutes = require('./promotionRoute');
 const productRoute = require('./productRoute');
 const subCategoryRoute = require('./subCategoryRoute');
 
@@ -21,7 +21,7 @@ app.use('/api/v1/formats', formatRoute);
 // app.use('/api/v1/payment', paymentRoute);
 // app.use('/api/v1/delivery', deliveryRoute);
 // app.use('/api/v1/command', commandRoute);
-// app.use('/api/v1/promotion', promotionRoute);
+app.use('/api/v1/promotions', promotionRoutes);
 app.use('/api/v1/products', productRoute);
 
 

@@ -9,12 +9,14 @@ const {
 const {
   getProducts,
   getProduct,
+  handleGetProductById ,
   createProduct,
   updateProduct,
   deleteProduct,
   uploadProductImages,
   resizeProductImages,
 } = require('../services/productService');
+
 const authService = require('../services/authService');
 
 const router = express.Router();
@@ -32,7 +34,7 @@ router
   );
 router
   .route('/:id')
-  .get(getProductValidator, getProduct)
+  .get(getProductValidator,handleGetProductById )
   .put(
     authService.protect,
     authService.allowedTo('admin'),

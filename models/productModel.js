@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema({
       type: Number,
     },
     sousCategorie: { type: mongoose.Schema.Types.ObjectId, ref: 'SousCategorie' },
-    promotions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Promotion' }],
+    promotions: { type: mongoose.Schema.Types.ObjectId, ref: 'Promotion', default: null  },
     imageCover: {
         type: String,
         required: [true, 'Product Image cover is required'],
@@ -38,20 +38,35 @@ const productSchema = new mongoose.Schema({
 productSchema.pre(/^find/, function (next) {
     this.populate({
       path: 'sousCategorie',
-      select: 'name -_id',
+      select: 'name ',
     })
     .populate({
         path: 'formats',
         populate: { path: 'tailles' }
+      }) .populate({
+        path: 'promotions'
       });
+      
     next();
 });
-  const setImageURL = (doc) => {
-    if (doc.imageCover) {
-      const imageUrl = `${process.env.BASE_URL}/products/${doc.imageCover}`;
-      doc.imageCover = imageUrl;
-    }
-  };
+const setImageURL = (doc) => {
+  if (doc.imageCover && !doc.imageCover.startsWith(process.env.BASE_URL)) {
+    const imageUrl = `${process.env.BASE_URL}/products/${doc.imageCover}`;
+    doc.imageCover = imageUrl;
+  }
+  if (doc.images) {
+    const imagesList = [];
+    doc.images.forEach((image) => {
+      if (!image.startsWith(process.env.BASE_URL)) {
+        const imageUrl = `${process.env.BASE_URL}/products/${image}`;
+        imagesList.push(imageUrl);
+      } else {
+        imagesList.push(image); // If it's already a complete URL
+      }
+    });
+    doc.images = imagesList;
+  }
+};
   // findOne, findAll and update
 productSchema.post('init', (doc) => {
     setImageURL(doc);

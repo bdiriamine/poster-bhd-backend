@@ -1,9 +1,10 @@
 const express = require('express');
 const {
   createTaille,
-  getTailles,
-  getTaillesForFormat,
-  getTaille,
+  getTaillesWithPromotions,
+  addPromotionToTaille,
+  applyPromotionToSubcategory,
+  getTailleWithPromotion,
   updateTaille,
   deleteTaille,
   setFormatIdToBody,
@@ -23,11 +24,22 @@ router
     setFormatIdToBody, // Ensure the format ID is set
     createTaille // Create Taille
   )
-  .get(createFilterObj, getTailles); // Get all Tailles with filtering
+  .get(createFilterObj,getTaillesWithPromotions); // Get all Tailles with filtering
 
+  router
+  .route('/:id/promotions/:promotionId')
+  .post(addPromotionToTaille); // Add promotion to a specific taille
+  router.post('/:promotionId/subcategories/:subcategoryId', async (req, res, next) => {
+    try {
+      const taille = await applyPromotionToSubcategory(req.params.subcategoryId, req.params.promotionId);
+      res.status(200).json({ status: 'success', data: taille });
+    } catch (err) {
+      next(err);
+    }
+  });
 router
   .route('/:id')
-  .get(getTaille) // Get a specific Taille
+  .get(getTailleWithPromotion) // Get a specific Taille
   .put(
     authService.protect,
     authService.allowedTo('admin'),
@@ -38,5 +50,6 @@ router
     authService.allowedTo('admin'),
     deleteTaille // Delete Taille
   );
+
 
 module.exports = router;
