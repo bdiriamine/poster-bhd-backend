@@ -26,7 +26,7 @@ app.set('trust proxy', true);
 // CORS configuration
 //production
 const corsOptions = {
-  origin: 'https://poster-bhd-front-production.up.railway.app', // No trailing slash
+  origin: 'https://poster-bhd-front-production.up.railway.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: [
     'Content-Type',
@@ -39,6 +39,12 @@ const corsOptions = {
   ],
   credentials: true
 };
+
+// Enable CORS for all routes
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 // mode dev
 // const corsOptions = {
 //   origin: 'http://localhost:4000', // No trailing slash
@@ -54,7 +60,7 @@ const corsOptions = {
 //   ],
 //   credentials: true
 // };
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 // Compress all responses
 app.use(compression());
