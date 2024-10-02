@@ -25,52 +25,20 @@ app.set('trust proxy', true);
 
 // CORS configuration
 //production
-const allowedOrigins = [
-  'https://poster-bhd-front-production.up.railway.app/', // Your Next.js front-end URL
-  'https://poster-bhd-backend-production.up.railway.app', // Add your production front-end URL here
-];
-
 const corsOptions = {
-  origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-          callback(null, true);
-      } else {
-          callback(new Error('Not allowed by CORS'));
-      }
-  },
-  credentials: true, // Allow cookies to be sent
-  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  origin: 'https://poster-bhd-front-production.up.railway.app', // No trailing slash
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Referer',
+    'sec-ch-ua',
+    'sec-ch-ua-mobile',
+    'sec-ch-ua-platform',
+    'User-Agent'
+  ],
+  credentials: true
 };
-
-app.use(cors(corsOptions));
-
-// Your other middleware and routes
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.post('/api/v1/auth/login', (req, res) => {
-  // Your login logic here
-});
-
-// Start the server
-app.listen(4000, () => {
-  console.log('Server is running on port 4000');
-});
-// const corsOptions = {
-//   origin: 'https://poster-bhd-front-production.up.railway.app', // No trailing slash
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//   allowedHeaders: [
-//     'Content-Type',
-//     'Authorization',
-//     'Referer',
-//     'sec-ch-ua',
-//     'sec-ch-ua-mobile',
-//     'sec-ch-ua-platform',
-//     'User-Agent'
-//   ],
-//   credentials: true
-// };
 // mode dev
 // const corsOptions = {
 //   origin: 'http://localhost:4000', // No trailing slash
