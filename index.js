@@ -40,11 +40,11 @@ const corsOptions = {
   credentials: true
 };
 
-// Enable CORS for all routes
-// app.use(cors(corsOptions));
 
-// // Handle preflight requests
-// app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 
 // mode dev
@@ -82,7 +82,7 @@ app.set('trust proxy', false);
 //   ],
 //   credentials: true
 // };
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 // Compress all responses
 app.use(compression());
