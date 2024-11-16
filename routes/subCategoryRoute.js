@@ -3,7 +3,7 @@ const express = require('express');
 const {
   createSubCategory,
   getSubCategory,
-  getSubCategories,
+  getAllSubCategories,
   updateSubCategory,
   deleteSubCategory,
   setCategoryIdToBody,
@@ -31,7 +31,7 @@ router
     createSubCategoryValidator,
     createSubCategory
   )
-  .get(createFilterObj, getSubCategories);
+  .get(createFilterObj, getAllSubCategories);
 router
   .route('/:id')
   .get(getSubCategoryValidator, getSubCategory)

@@ -3,11 +3,12 @@ const productSchema = new mongoose.Schema({
     name: { 
         type: String,
         trim: true,
-        required: [true, 'name required']
+        unique: true,
+        required: [true, 'name required'],
+        
     },
     slug: {
         type: String,
-        required: true,
         lowercase: true,
       },
     price: { 
@@ -21,11 +22,13 @@ const productSchema = new mongoose.Schema({
     priceAfterDiscount: {
       type: Number,
     },
-    sousCategorie: { type: mongoose.Schema.Types.ObjectId, ref: 'SousCategorie' },
-    promotions: { type: mongoose.Schema.Types.ObjectId, ref: 'Promotion', default: null  },
+    sousCategories: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SousCategorie',
+    },
+    promotions: { type: mongoose.Schema.Types.ObjectId, ref: 'Promotion', default: null },
     imageCover: {
         type: String,
-        required: [true, 'Product Image cover is required'],
       },
     formats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Format' }],
     
@@ -37,8 +40,8 @@ const productSchema = new mongoose.Schema({
 // Mongoose query middleware
 productSchema.pre(/^find/, function (next) {
     this.populate({
-      path: 'sousCategorie',
-      select: 'name ',
+      path: 'sousCategories',
+      // select: 'name ',
     })
     .populate({
         path: 'formats',
@@ -72,7 +75,12 @@ productSchema.post('init', (doc) => {
     setImageURL(doc);
   });
   
-  // create
+  productSchema.pre('save', function (next) {
+    if (!this.slug) {
+      this.slug = this.name.toLowerCase().replace(/ /g, '-');
+    }
+    next();
+  });
   productSchema.post('save', (doc) => {
     setImageURL(doc);
   });

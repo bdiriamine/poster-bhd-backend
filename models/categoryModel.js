@@ -16,6 +16,14 @@ const categorySchema = new mongoose.Schema({
 },
 { timestamps: true });
 
+categorySchema.pre(/^find/, function (next) {
+  if (this.sousCategories && this.sousCategories.length > 0) {
+    this.populate({
+      path: 'sousCategories'
+    });
+  }
+  next();
+});
 const Category = mongoose.model('Category', categorySchema);
 
 module.exports = Category;

@@ -13,6 +13,7 @@ const {
   createCategory,
   updateCategory,
   deleteCategory,
+  getCategoryByName
 } = require('../services/categoryService');
 
 const authService = require('../services/authService');
@@ -29,7 +30,7 @@ router
   .get(getCategories)
   .post(
     authService.protect,
-    authService.allowedTo('admin', ),
+    authService.allowedTo('admin' ),
     createCategoryValidator,
     createCategory
   );
@@ -38,7 +39,7 @@ router
   .get(getCategoryValidator, getCategory)
   .put(
     authService.protect,
-    authService.allowedTo('admin', ),
+    authService.allowedTo('admin' ),
     updateCategoryValidator,
     updateCategory
   )
@@ -48,5 +49,7 @@ router
     deleteCategoryValidator,
     deleteCategory
   );
-
+  router
+  .route('/name/:name')
+  .get(getCategoryByName); 
 module.exports = router;

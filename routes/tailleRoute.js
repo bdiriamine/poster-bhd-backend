@@ -9,6 +9,9 @@ const {
   deleteTaille,
   setFormatIdToBody,
   createFilterObj,
+  resizeTailleImages,
+  uploadTailleImages,
+  removePromotionFromTaille,
 } = require('../services/tailleService');
 
 const authService = require('../services/authService');
@@ -19,6 +22,8 @@ const router = express.Router({ mergeParams: true }); // Allow merging params
 router
   .route('/')
   .post(
+    uploadTailleImages,
+    resizeTailleImages,
     authService.protect,
     authService.allowedTo('admin'),
     setFormatIdToBody, // Ensure the format ID is set
@@ -41,6 +46,8 @@ router
   .route('/:id')
   .get(getTailleWithPromotion) // Get a specific Taille
   .put(
+    uploadTailleImages,
+    resizeTailleImages,
     authService.protect,
     authService.allowedTo('admin'),
     updateTaille // Update Taille
@@ -50,6 +57,6 @@ router
     authService.allowedTo('admin'),
     deleteTaille // Delete Taille
   );
-
+  router.delete('/:id/promotions',removePromotionFromTaille);
 
 module.exports = router;

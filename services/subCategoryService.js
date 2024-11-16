@@ -20,7 +20,8 @@ exports.createFilterObj = (req, res, next) => {
 // @desc    Get list of subcategories
 // @route   GET /api/v1/subcategories
 // @access  Public
-exports.getSubCategories = factory.getAll(SubCategory,'type', 'category');
+exports.getAllSubCategories = factory.getAll(SubCategory,'SubCategory','category produits')
+
 
 // @desc    Get specific subcategory by id
 // @route   GET /api/v1/subcategories/:id
@@ -30,8 +31,7 @@ exports.getSubCategory = factory.getOne(SubCategory);
 // @desc    Create subCategory
 // @route   POST  /api/v1/subcategories
 // @access  Private
-// exports.createSubCategory = factory.createOne(SubCategory);
-// Create a new souscategory and associate it with a category
+
 exports.createSubCategory = async (req, res) => {
   try {
     const soucategory = await SubCategory.create(req.body); // Create new Taille
@@ -44,7 +44,6 @@ exports.createSubCategory = async (req, res) => {
         { new: true }
       );
     }
-
     res.status(201).json({
       status: 'success',
       data: { soucategory },
@@ -56,9 +55,6 @@ exports.createSubCategory = async (req, res) => {
     });
   }
 };
-
-
-
 // @desc    Update specific subcategory
 // @route   PUT /api/v1/subcategories/:id
 // @access  Private

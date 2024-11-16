@@ -4,13 +4,16 @@ const tailleSchema = new mongoose.Schema({
   height: { type: Number, trim: true, required: [true, 'Hauteur required'] }, 
   unit: { type: String, trim: true,enum: ['cm', 'm', 'inches'], default: 'cm', }, 
   price: { type: Number,  required: [true, 'Prix required'] }, 
-  image: { type: String, required: [true, 'image required'] },
+  imageTaille: { type: String, required: [true, 'image required'] },
   format: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Format',
     required: true, // Assurez-vous qu'une taille doit appartenir à un format
   },
-  promotion: { type: mongoose.Schema.Types.ObjectId, ref: 'Promotion' }
+  promotion: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Promotion',
+  }
 });
 // Mongoose query middleware
 tailleSchema.pre(/^find/, function (next) {

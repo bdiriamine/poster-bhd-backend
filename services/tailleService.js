@@ -2,6 +2,83 @@ const factory = require('./handlersFactory');
 const Taille = require('../models/tailleModel');
 const Format = require('../models/formatModel');
 const Promotion = require('../models/promotionModel');
+const asyncHandler = require('express-async-handler');
+const { v4: uuidv4 } = require('uuid');
+const sharp = require('sharp');
+const fs = require('fs');
+const path = require('path');
+const { uploadMixOfImages } = require('../middlewares/uploadImageMiddleware');
+
+const uploadDir = path.join(__dirname, '..', 'uploads', 'tailles');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log("Upload directory created:", uploadDir);
+} else {
+    console.log("Upload directory already exists:", uploadDir);
+}
+
+exports.uploadTailleImages = uploadMixOfImages([
+  {
+    name: 'imageTaille',
+    maxCount: 1,
+  },
+  {
+    name: 'images',
+    maxCount: 5,
+  },
+]);
+
+exports.resizeTailleImages = asyncHandler(async (req, res, next) => {
+  try {
+    // Check if there are files to process
+    if (!req.files || (!req.files.imageTaille && !req.files.images)) {
+      return next(); // No files to process, proceed to the next middleware
+    }
+
+    // Process imageTaille
+    if (req.files.imageTaille) {
+      const imageTailleFileName = `tailles-${uuidv4()}-${Date.now()}-cover.jpeg`;
+
+      await sharp(req.files.imageTaille[0].buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 95 })
+        .toFile(`uploads/tailles/${imageTailleFileName}`);
+
+      req.body.imageTaille = imageTailleFileName; // Set only if a new image is uploaded
+    }
+
+    // Process other images
+    if (req.files.images) {
+      req.body.images = [];
+      await Promise.all(
+        req.files.images.map(async (img, index) => {
+          const imageName = `tailles-${uuidv4()}-${Date.now()}-${index + 1}.jpeg`;
+
+          await sharp(img.buffer)
+            .resize(2000, 1333)
+            .toFormat('jpeg')
+            .jpeg({ quality: 95 })
+            .toFile(`uploads/tailles/${imageName}`);
+
+          req.body.images.push(imageName);
+        })
+      );
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error processing images:", error);
+    return res.status(500).json({ status: 'error', message: 'Image processing failed.' });
+  }
+});
+const setImageURL = (taille) => {
+  const baseURL = process.env.BASE_URL;
+  if (taille.imageTaille && !taille.imageTaille.startsWith('http')) {
+    taille.imageTaille = `${baseURL}/tailles/${taille.imageTaille}`;
+  }
+};
+
 
 // Middleware to set the formatId in the request body
 exports.setFormatIdToBody = (req, res, next) => {
@@ -16,9 +93,15 @@ exports.createFilterObj = (req, res, next) => {
   req.filterObj = filterObject;
   next();
 };
+
 // Create a new Taille and associate it with a Format
 exports.createTaille = async (req, res) => {
   try {
+    const baseURL = process.env.BASE_URL;
+    if (req.body.imageTaille) {
+      req.body.imageTaille = `${baseURL}/tailles/${req.body.imageTaille}`;
+    }
+
     const taille = await Taille.create(req.body); // Create new Taille
 
     // If a formatId is provided, add the Taille ID to the corresponding Format document
@@ -29,7 +112,7 @@ exports.createTaille = async (req, res) => {
         { new: true }
       );
     }
-
+    setImageURL(taille)
     res.status(201).json({
       status: 'success',
       data: { taille },
@@ -43,34 +126,48 @@ exports.createTaille = async (req, res) => {
 };
 
 exports.addPromotionToTaille = async (req, res, next) => {
-  const { id, promotionId } = req.params;
   try {
-    const taille = await Taille.findById(id);
+    const { id, promotionId } = req.params;
+
+    // Find the 'taille' by ID and check if it already has a promotion
+    let taille = await Taille.findById(id);
+
     if (!taille) {
       return res.status(404).json({ status: 'fail', message: 'Taille not found' });
     }
+
+    // Remove the current promotion if it exists
+    if (taille.promotion) {
+      await Promotion.updateOne({ _id: taille.promotion }, { $pull: { tailles: id } });
+      taille.promotion = null; // Clear the promotion reference in the 'taille'
+    }
+
+    // Add the new promotion
     taille.promotion = promotionId;
-    console.log( taille.promotion)
-    console.log( taille)
     await taille.save();
+
+    // Add the taille reference to the promotion's tailles array
+    await Promotion.findByIdAndUpdate(promotionId, { $addToSet: { tailles: id } });
+
     res.status(200).json({ status: 'success', data: taille });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
+
 exports.getTaillesWithPromotions = async (req, res, next) => {
   try {
     const tailles = await Taille.find()
-      .populate('promotion'); // Adjust according to your schema
+      .populate('promotion'); // Populate promotions
 
     const now = new Date(); // Get the current date
 
     const taillésWithDiscounts = tailles.map(taille => {
-      // Default to original price (if applicable)
-      let discountedPrice = taille.price; // Adjust this if you have a specific price field
+      // Default to original price
+      let discountedPrice = taille.price; 
 
-      // Assuming each taille has a single promotion
-      const activePromotion = taille.promotion; // Get the promotion directly
+      // Get the active promotion
+      const activePromotion = taille.promotion;
 
       // Check if there is an active promotion
       if (activePromotion && activePromotion.startDate <= now && activePromotion.endDate >= now) {
@@ -79,7 +176,6 @@ exports.getTaillesWithPromotions = async (req, res, next) => {
       }
 
       // Return taille with discounted price
-      console.log(taille)
       return {
         ...taille.toObject(), // Convert Mongoose document to plain object
         discountedPrice
@@ -91,6 +187,7 @@ exports.getTaillesWithPromotions = async (req, res, next) => {
     next(err);
   }
 };
+
 exports.getTailleWithPromotion = async (req, res, next) => {
   try {
     const tailleId = req.params.id; // Get taille ID from request parameters
@@ -107,7 +204,7 @@ exports.getTailleWithPromotion = async (req, res, next) => {
     let discountedPrice = taille.price; // Default to original price
 
     // Check if there is an active promotion
-    const activePromotion = taille.promotion; // Get the promotion directly
+    const activePromotion = taille.promotion;
     if (activePromotion && activePromotion.startDate <= now && activePromotion.endDate >= now) {
       const discountPercentage = activePromotion.discountPercentage;
       discountedPrice = taille.price - (taille.price * (discountPercentage / 100));
@@ -117,7 +214,7 @@ exports.getTailleWithPromotion = async (req, res, next) => {
     res.status(200).json({
       status: 'success',
       data: {
-        ...taille.toObject(), // Convert Mongoose document to plain object
+        ...taille.toObject(),
         discountedPrice
       }
     });
@@ -125,9 +222,9 @@ exports.getTailleWithPromotion = async (req, res, next) => {
     next(err);
   }
 };
-// Function to apply a promotion to a subcategory
+
+// Apply a promotion to a subcategory
 exports.applyPromotionToSubcategory = async (subcategoryId, promotionId) => {
-  // Find the promotion by ID
   const promotion = await Promotion.findById(promotionId);
   if (!promotion) {
     throw new Error('Promotion not found');
@@ -138,11 +235,43 @@ exports.applyPromotionToSubcategory = async (subcategoryId, promotionId) => {
 
   // Apply the promotion to each taille
   for (const taille of tailles) {
-    taille.promotions.push(promotion._id); // Assuming `promotions` is an array in the Taille model
-    await taille.save();
+    taille.promotion = promotion._id; // Assuming a single promotion
+    await taille.save(); // Save the updated taille
   }
 
   return tailles; // Return the updated tailles
+};
+
+exports.removePromotionFromTaille = async (req, res, next) => {
+  try {
+    // Step 1: Find the Taille and get the current promotion ID
+    const taille = await Taille.findById(req.params.id);
+    if (!taille) {
+      return res.status(404).json({ status: 'fail', message: 'Taille not found' });
+    }
+
+    const promotionId = taille.promotion; // Get the current promotion ID associated with the Taille
+
+    // Step 2: Remove the promotion from the Taille
+    taille.promotion = undefined; // Remove the promotion reference
+    await taille.save(); // Save the updated Taille
+
+    // Step 3: If a promotion was associated, update the Promotion document to remove this Taille
+    if (promotionId) {
+      const promotion = await Promotion.findById(promotionId);
+      if (promotion && promotion.tailles) {
+        promotion.tailles = promotion.tailles.filter(tailleId => tailleId.toString() !== req.params.id);
+        await promotion.save(); // Save the updated Promotion
+      }
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: taille
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Update a specific Taille

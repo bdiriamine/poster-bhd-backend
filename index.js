@@ -26,7 +26,7 @@ app.set('trust proxy', true);
 // CORS configuration
 //production
 const corsOptions = {
-  origin: 'https://poster-bhd-front-production.up.railway.app',
+  origin: 'poster-bhd-front.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: [
     'Content-Type',
@@ -41,13 +41,20 @@ const corsOptions = {
 };
 
 // Enable CORS for all routes
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
-// Handle preflight requests
-app.options('*', cors(corsOptions));
+// // Handle preflight requests
+// app.options('*', cors(corsOptions));
+
+
 // mode dev
+// Trust proxy to handle the X-Forwarded-For header
+app.set('trust proxy', false);
+
+// CORS configuration
+//production
 // const corsOptions = {
-//   origin: 'http://localhost:4000', // No trailing slash
+//   origin: 'https://poster-bhd-front-production.up.railway.app', // No trailing slash
 //   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 //   allowedHeaders: [
 //     'Content-Type',
@@ -60,13 +67,29 @@ app.options('*', cors(corsOptions));
 //   ],
 //   credentials: true
 // };
-// app.use(cors(corsOptions));
+// mode dev
+// const corsOptions = {
+//   origin: 'http://localhost:3000', // No trailing slash
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   allowedHeaders: [
+//     'Content-Type',
+//     'Authorization',
+//     'Referer',
+//     'sec-ch-ua',
+//     'sec-ch-ua-mobile',
+//     'sec-ch-ua-platform',
+//     'User-Agent'
+//   ],
+//   credentials: true
+// };
+app.use(cors(corsOptions));
 
 // Compress all responses
 app.use(compression());
 
 // Middlewares
-app.use(express.json({ limit: '20kb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'uploads')));
 
 // Logging in development mode
@@ -78,7 +101,7 @@ if (process.env.NODE_ENV === 'development') {
 // Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Increase to allow more requests
+  max: 500, // Increase to allow more requests
   message: 'Too many requests from this IP, please try again later',
 });
 
@@ -86,21 +109,24 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // Middleware to protect against HTTP Parameter Pollution attacks
-app.use(
-  hpp({
-    whitelist: [
-      'price',
-      'sold',
-      'quantity',
-      'ratingsAverage',
-      'ratingsQuantity',
-    ],
-  })
-);
+// app.use(
+//   hpp({
+//     whitelist: [
+//       'price',
+//       'sold',
+//       'quantity',
+//       'ratingsAverage',
+//       'ratingsQuantity',
+//     ],
+//   })
+// );
 
 // Mount Routes
 mountRoutes(app);
-
+app.use((req, res, next) => {
+  req.setTimeout(5000); // Set timeout to 5 seconds (5000 ms)
+  next();
+});
 // Catch all route handler
 app.all('*', (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));

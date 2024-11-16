@@ -75,7 +75,7 @@ exports.updateProductValidator = [
     .optional()
     .notEmpty()
     .withMessage('Description cannot be empty.')
-    .isLength({ min: 10 })
+    .isLength({ min: 2 })
     .withMessage('Description must be at least 10 characters long.'),
     
   body('imageCover')

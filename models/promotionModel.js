@@ -4,6 +4,7 @@ const promotionSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Promotion name is required'],
+    unique: true,
   },
   discountPercentage: {
     type: Number,
@@ -20,19 +21,26 @@ const promotionSchema = new mongoose.Schema({
     required: [true, 'End date is required'],
   },
   produits: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-  tailles: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Taille', // Reference to the SubCategory model
-  }],
+  tailles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Taille' }],
 }, { timestamps: true });
 
-
-promotionSchema.pre('save', function(next) {
-  if (this.endDate <= this.startDate) {
-      return next(new Error('End date must be after start date'));
+// Conditionally populate produits or tailles if they exist
+promotionSchema.pre(/^find/, function (next) {
+  if (this.produits && this.produits.length > 0) {
+    this.populate({
+      path: 'produits',
+    });
   }
+
+  if (this.tailles && this.tailles.length > 0) {
+    this.populate({
+      path: 'tailles',
+    });
+  }
+
   next();
 });
+
 const Promotion = mongoose.model('Promotion', promotionSchema);
 
 module.exports = Promotion;

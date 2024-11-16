@@ -8,22 +8,30 @@ const ApiError = require('../utils/apiError');
 const { uploadSingleImage } = require('../middlewares/uploadImageMiddleware');
 const createToken = require('../utils/createToken');
 const User = require('../models/userModel');
-
+const path = require('path');
+const fs = require('fs');
 // Upload single image
 exports.uploadUserImage = uploadSingleImage('profileImg');
 
 // Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
+  const dir = path.join(__dirname, '..', 'uploads', 'users');
+
+  // Ensure the directory exists
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 
   if (req.file) {
+    const filePath = path.join(dir, filename);
+
     await sharp(req.file.buffer)
       .resize(600, 600)
       .toFormat('jpeg')
       .jpeg({ quality: 95 })
-      .toFile(`uploads/users/${filename}`);
+      .toFile(filePath);
 
-    // Save image into our db
     req.body.profileImg = filename;
   }
 
@@ -49,6 +57,15 @@ exports.createUser = factory.createOne(User);
 // @route   PUT /api/v1/users/:id
 // @access  Private/Admin
 exports.updateUser = asyncHandler(async (req, res, next) => {
+  // Set the base URL from environment variables
+  const baseURL = process.env.BASE_URL;
+
+  // Check if profileImg exists and does not start with 'http'
+  if (req.body.profileImg && !req.body.profileImg.startsWith('http')) {
+    req.body.profileImg = `${baseURL}/users/${req.body.profileImg}`;
+  }
+
+  // Update the user document
   const document = await User.findByIdAndUpdate(
     req.params.id,
     {
@@ -61,13 +78,14 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
       active: req.body.active,
     },
     {
-      new: true,
+      new: true, // Return the updated document
     }
   );
 
   if (!document) {
     return next(new ApiError(`No document for this id ${req.params.id}`, 404));
   }
+
   res.status(200).json({ data: document });
 });
 

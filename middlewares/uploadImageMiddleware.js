@@ -15,7 +15,7 @@ const multerOptions = () => {
     storage: multerStorage,
     fileFilter: multerFilter,
     limits: {
-      fileSize: 5 * 1024 * 1024, // Limit files to 5 MB
+      fileSize: 50 * 1024 * 1024, // Limit files to 50 MB
     },
   });
 
