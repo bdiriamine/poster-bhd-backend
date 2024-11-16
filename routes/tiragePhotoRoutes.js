@@ -7,7 +7,7 @@ getTiragePhotoById,
 getTiragePhotos,
 updateTiragePhoto,
 resizeTiragePhoto,
-uploadTiragePhoto} = require('../services/TiragePhotoService');
+uploadTiragePhoto} = require('../services/tiragePhotoService');
 
 const authService = require('../services/authService');
 
