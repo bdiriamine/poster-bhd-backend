@@ -26,7 +26,7 @@ app.set('trust proxy', true);
 // CORS configuration
 //production
 const corsOptions = {
-  origin: 'poster-bhd-front.vercel.app',
+  origin: 'https://poster-bhd-front-production.up.railway.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: [
     'Content-Type',
@@ -148,4 +148,3 @@ process.on('unhandledRejection', (err) => {
     process.exit(1);
   });
 });
-module.exports=app
