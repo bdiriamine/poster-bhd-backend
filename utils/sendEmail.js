@@ -16,7 +16,7 @@ const sendEmail = async (options) => {
   });
   // 2) Define email options
   const mailOpts = {
-    from: `E-shop App <${process.env.EMAIL_USER}>`, // Use the user email from env
+    from: `Poster BHD <${process.env.EMAIL_USER}>`, // Use the user email from env
     to: options.email,
     subject: options.subject,
     text: options.message,

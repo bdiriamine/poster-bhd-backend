@@ -137,7 +137,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   await user.save();
 
   // 3) Send the reset code via email
-  const message = `Hi ${user.name},\n We received a request to reset your password on your E-shop Account.\n Your reset code is: ${resetCode}\n Enter this code to complete the reset.\n Thanks for helping us keep your account secure.\n The E-shop Team`;
+  const message = `Hi ${user.name},\n We received a request to reset your password on your Poster BHD Account.\n Your reset code is: ${resetCode}\n Enter this code to complete the reset.\n Thanks for helping us keep your account secure.\n The Poster BHD Team`;
 
   try {
     await sendEmail({
